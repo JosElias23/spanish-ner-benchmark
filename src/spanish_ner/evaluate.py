@@ -12,6 +12,7 @@ keeps our numbers comparable with published results.
 
 from __future__ import annotations
 
+import numpy as np
 from seqeval.metrics import classification_report, f1_score, precision_score, recall_score
 
 from spanish_ner.data import Sentence
@@ -81,3 +82,85 @@ def format_table(results: dict, title: str = "") -> str:
         f"**{o['f1']:.4f}** | **{results['n_gold_entities']}** |"
     )
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Statistical significance
+# ---------------------------------------------------------------------------
+
+
+def entity_counts_per_sentence(
+    y_true: list[list[str]], y_pred: list[list[str]]
+) -> np.ndarray:
+    """Per-sentence (true positives, predicted count, gold count).
+
+    Micro-averaged precision, recall and F1 are ratios of sums over these three
+    quantities, so a bootstrap resample only needs to re-sum the rows. That
+    turns 10,000 resamples from hours of seqeval calls into milliseconds.
+    """
+    from spanish_ner.data import iter_entities
+
+    counts = np.zeros((len(y_true), 3), dtype=np.int64)
+    for i, (gold, pred) in enumerate(zip(y_true, y_pred, strict=True)):
+        gold_spans = set(iter_entities(gold))
+        pred_spans = set(iter_entities(pred))
+        counts[i] = (len(gold_spans & pred_spans), len(pred_spans), len(gold_spans))
+    return counts
+
+
+def _micro_f1(counts: np.ndarray) -> float:
+    tp, n_pred, n_gold = counts.sum(axis=0)
+    if n_pred == 0 or n_gold == 0:
+        return 0.0
+    precision = tp / n_pred
+    recall = tp / n_gold
+    return 0.0 if precision + recall == 0 else 2 * precision * recall / (precision + recall)
+
+
+def paired_bootstrap(
+    counts_a: np.ndarray,
+    counts_b: np.ndarray,
+    n_resamples: int = 10_000,
+    seed: int = 42,
+    confidence: float = 0.95,
+) -> dict:
+    """Paired bootstrap test for the F1 difference between two models.
+
+    Both models are scored on the *same* resampled sentences, which controls for
+    the fact that some sentences are simply harder than others. The reported
+    p-value is the fraction of resamples in which model A fails to beat model B
+    -- i.e. how often the observed ranking could flip on a different sample of
+    the same size.
+
+    A 1-point F1 gap on 1,500 sentences is frequently not significant. Reporting
+    the interval rather than the point estimate is what makes a model comparison
+    honest.
+    """
+    if counts_a.shape != counts_b.shape:
+        raise ValueError("Both models must be scored on the same sentences")
+
+    rng = np.random.default_rng(seed)
+    n = len(counts_a)
+    observed = _micro_f1(counts_a) - _micro_f1(counts_b)
+
+    diffs = np.empty(n_resamples)
+    for i in range(n_resamples):
+        idx = rng.integers(0, n, size=n)
+        diffs[i] = _micro_f1(counts_a[idx]) - _micro_f1(counts_b[idx])
+
+    alpha = (1 - confidence) / 2
+    lower, upper = np.quantile(diffs, [alpha, 1 - alpha])
+    tail = np.mean(diffs <= 0) if observed > 0 else np.mean(diffs >= 0)
+
+    return {
+        "f1_a": round(_micro_f1(counts_a), 4),
+        "f1_b": round(_micro_f1(counts_b), 4),
+        "observed_difference": round(observed, 4),
+        "ci_lower": round(float(lower), 4),
+        "ci_upper": round(float(upper), 4),
+        "confidence": confidence,
+        # Two-sided: how often the difference changes sign or vanishes.
+        "p_value": round(min(1.0, float(tail) * 2), 4),
+        "significant": bool(lower > 0 or upper < 0),
+        "n_resamples": n_resamples,
+    }
