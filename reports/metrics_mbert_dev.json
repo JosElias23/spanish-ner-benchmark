@@ -1,0 +1,94 @@
+{
+  "batch_size": 32,
+  "epoch_history": [
+    {
+      "epoch": 1.0,
+      "eval_f1": 0.8284,
+      "eval_loss": 0.08318953216075897,
+      "eval_macro_f1": 0.777,
+      "eval_precision": 0.8264,
+      "eval_recall": 0.8304,
+      "eval_runtime": 1.8292,
+      "eval_samples_per_second": 1046.924,
+      "eval_steps_per_second": 16.401
+    },
+    {
+      "epoch": 2.0,
+      "eval_f1": 0.8474,
+      "eval_loss": 0.07572794705629349,
+      "eval_macro_f1": 0.8008,
+      "eval_precision": 0.8422,
+      "eval_recall": 0.8525,
+      "eval_runtime": 1.9283,
+      "eval_samples_per_second": 993.084,
+      "eval_steps_per_second": 15.557
+    },
+    {
+      "epoch": 3.0,
+      "eval_f1": 0.8676,
+      "eval_loss": 0.07827088236808777,
+      "eval_macro_f1": 0.8287,
+      "eval_precision": 0.8623,
+      "eval_recall": 0.873,
+      "eval_runtime": 2.0126,
+      "eval_samples_per_second": 951.5,
+      "eval_steps_per_second": 14.906
+    },
+    {
+      "epoch": 4.0,
+      "eval_f1": 0.866,
+      "eval_loss": 0.08396422863006592,
+      "eval_macro_f1": 0.8269,
+      "eval_precision": 0.8623,
+      "eval_recall": 0.8698,
+      "eval_runtime": 1.9485,
+      "eval_samples_per_second": 982.804,
+      "eval_steps_per_second": 15.396
+    }
+  ],
+  "epochs": 4,
+  "label_all_subtokens": false,
+  "learning_rate": 3e-05,
+  "macro_f1": 0.8279,
+  "model_name": "bert-base-multilingual-cased",
+  "n_gold_entities": 4352,
+  "n_parameters": 177269769,
+  "n_sentences": 1915,
+  "overall": {
+    "f1": 0.8665,
+    "precision": 0.8623,
+    "recall": 0.8706
+  },
+  "per_type": {
+    "LOC": {
+      "f1": 0.8645,
+      "precision": 0.8711,
+      "recall": 0.8579,
+      "support": 985
+    },
+    "MISC": {
+      "f1": 0.6302,
+      "precision": 0.653,
+      "recall": 0.609,
+      "support": 445
+    },
+    "ORG": {
+      "f1": 0.8696,
+      "precision": 0.8427,
+      "recall": 0.8982,
+      "support": 1700
+    },
+    "PER": {
+      "f1": 0.9475,
+      "precision": 0.9574,
+      "recall": 0.9378,
+      "support": 1222
+    }
+  },
+  "train_seconds": 109.9,
+  "truncation": {
+    "max_length": 256,
+    "sentences_truncated": 6,
+    "words_lost": 1537
+  }
+}
