@@ -264,7 +264,7 @@ on an RTX 5060 Ti (8 GB): **about 15 minutes** for all five models plus
 evaluation.
 
 ```bash
-git clone https://github.com/JoseElias23/spanish-ner-benchmark.git
+git clone https://github.com/JosElias23/spanish-ner-benchmark.git
 cd spanish-ner-benchmark
 ```
 
