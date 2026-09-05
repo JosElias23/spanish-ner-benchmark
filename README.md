@@ -264,8 +264,8 @@ on an RTX 5060 Ti (8 GB): **about 15 minutes** for all five models plus
 evaluation.
 
 ```bash
-git clone https://github.com/JoseElias23/spanish-ner-beto.git
-cd spanish-ner-beto
+git clone https://github.com/JoseElias23/spanish-ner-benchmark.git
+cd spanish-ner-benchmark
 ```
 
 ```bash
@@ -335,13 +335,13 @@ The demo runs on the Hugging Face Spaces free CPU tier.
 
    ```bash
    huggingface-cli login
-   huggingface-cli upload <your-username>/spanish-ner-beto \
+   huggingface-cli upload <your-username>/spanish-ner-benchmark \
        models/bert-base-spanish-wwm-cased/best
    ```
 
 3. Copy `app/app.py` and `app/requirements.txt` into the Space repository,
    renaming nothing.
-4. Set the Space secret `NER_MODEL_PATH` to `<your-username>/spanish-ner-beto`.
+4. Set the Space secret `NER_MODEL_PATH` to `<your-username>/spanish-ner-benchmark`.
    The app reads that variable and falls back to the local checkpoint path when
    it is unset, so the same file runs locally and in production.
 5. Push. The Space builds in a few minutes.
@@ -356,7 +356,7 @@ vocabulary means fewer sub-tokens per word and faster CPU inference.
 ## Repository layout
 
 ```
-spanish-ner-beto/
+spanish-ner-benchmark/
 ├── configs/default.yaml        every hyperparameter that affects a metric
 ├── data/raw/                   corpus files (gitignored, checksum-verified)
 ├── src/spanish_ner/

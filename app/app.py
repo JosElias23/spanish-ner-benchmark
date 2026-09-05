@@ -110,7 +110,7 @@ with gr.Blocks(title="Spanish NER") as demo:
 
         Trained and evaluated with a strict protocol: the test split was read
         once, at the end. Full results, baselines and known limitations are in
-        the [GitHub repository](https://github.com/JoseElias23/spanish-ner-beto).
+        the [GitHub repository](https://github.com/JoseElias23/spanish-ner-benchmark).
         """
     )
 
