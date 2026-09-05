@@ -1,0 +1,43 @@
+[project]
+name = "spanish-ner"
+version = "0.1.0"
+description = "End-to-end Spanish Named Entity Recognition: from feature-engineered CRF baselines to a fine-tuned BETO transformer."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Jose Elias Sanhueza Perez" }]
+
+dependencies = [
+    "torch>=2.0",
+    "transformers>=4.44,<5",
+    "datasets>=2.20",
+    "accelerate>=0.33",
+    "seqeval>=1.2.2",
+    "scikit-learn>=1.3",
+    "sklearn-crfsuite>=0.5",
+    "pyyaml>=6.0",
+    "matplotlib>=3.7",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "ruff>=0.5"]
+app = ["gradio>=4.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

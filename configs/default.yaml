@@ -1,0 +1,43 @@
+# Single source of truth for every hyperparameter in the project.
+# Anything that affects a reported number lives here, not in the code.
+
+seed: 42
+
+data:
+  raw_dir: data/raw
+  # CoNLL-2002 Spanish. `testa` is the official development split,
+  # `testb` the official test split. testb is touched exactly once, at the end.
+  files:
+    train: esp.train
+    dev: esp.testa
+    test: esp.testb
+  # SHA-256 of the raw files, verified on every load.
+  # Guarantees that a metric can never silently drift because the data changed.
+  checksums:
+    esp.train: a20d95cab7d88a19a86f8c1ad6329325c99fbd9529ed978cbd7e31d4b01b4008
+    esp.testa: 85c17793b77881c53d19017d9d0f1e6fb98b7ddcab54a5f24b05ed1793103c87
+    esp.testb: 1f8f7a392c6d4979a5592a5794eed43d7869b46da6851bbcde99714149f1d016
+
+transformer:
+  model_name: dccuchile/bert-base-spanish-wwm-cased  # BETO
+  max_length: 256
+  learning_rate: 3.0e-5
+  batch_size: 32
+  eval_batch_size: 64
+  num_epochs: 4
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  # Only the first sub-token of each word carries the label; the rest get -100
+  # so they are ignored by the loss. See src/spanish_ner/data.py.
+  label_all_subtokens: false
+
+crf:
+  algorithm: lbfgs
+  c1: 0.1
+  c2: 0.1
+  max_iterations: 200
+
+paths:
+  models_dir: models
+  reports_dir: reports
+  figures_dir: reports/figures
