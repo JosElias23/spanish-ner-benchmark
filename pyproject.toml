@@ -18,11 +18,15 @@ dependencies = [
     "pyyaml>=6.0",
     "matplotlib>=3.7",
     "numpy>=1.24",
+    # transformers<5 requires huggingface-hub<1.0; pinned explicitly because
+    # installing gradio>=6 alongside it silently upgrades the hub and breaks
+    # transformers at import time.
+    "huggingface-hub>=0.34,<1.0",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4", "ruff>=0.5"]
-app = ["gradio>=4.0"]
+app = ["gradio>=5,<6"]
 
 [build-system]
 requires = ["setuptools>=68"]

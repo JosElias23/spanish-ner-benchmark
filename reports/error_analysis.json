@@ -1,0 +1,300 @@
+{
+  "by_category": {
+    "boundary": 186,
+    "missed": 16,
+    "spurious": 47,
+    "type": 230
+  },
+  "by_category_pct": {
+    "boundary": 38.8,
+    "missed": 3.3,
+    "spurious": 9.8,
+    "type": 48.0
+  },
+  "model": "dccuchile/bert-base-spanish-wwm-cased",
+  "n_deduplicated": 1208,
+  "n_test_sentences": 1517,
+  "sample_errors": [
+    {
+      "category": "type",
+      "context": ", responsable de comunicación de Savia Amadeus .",
+      "gold": "ORG",
+      "predicted": "PER",
+      "text": "Savia Amadeus"
+    },
+    {
+      "category": "type",
+      "context": "medio millón de visitas de Internautas , para consultar tarifas de",
+      "gold": "MISC",
+      "predicted": "ORG",
+      "text": "Internautas"
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "\" Grupo San Victorino II \"",
+      "predicted": "MISC",
+      "predicted_text": "Grupo San Victorino II"
+    },
+    {
+      "category": "type",
+      "context": "se enfrentará a la de Paraguay en tres encuentros amistosos que",
+      "gold": "LOC",
+      "predicted": "ORG",
+      "text": "Paraguay"
+    },
+    {
+      "category": "boundary",
+      "gold": "LOC",
+      "gold_text": "estadio Gabba de Brisbane",
+      "predicted": "LOC",
+      "predicted_text": "estadio Gabba"
+    },
+    {
+      "category": "boundary",
+      "gold": "LOC",
+      "gold_text": "estadio Colonial de Melbourne",
+      "predicted": "LOC",
+      "predicted_text": "estadio Colonial"
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "Copa Confederaciones",
+      "predicted": "MISC",
+      "predicted_text": "Copa Confederaciones de la Federación Internacional de Fútbol Asociado"
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "Federación Internacional de Fútbol Asociado",
+      "predicted": "MISC",
+      "predicted_text": "Copa Confederaciones de la Federación Internacional de Fútbol Asociado"
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "Velez Sarfield de Argentina",
+      "predicted": "ORG",
+      "predicted_text": "Velez Sarfield"
+    },
+    {
+      "category": "type",
+      "context": "zona de Oceanía , donde Australia es amplio favorito , deberá",
+      "gold": "LOC",
+      "predicted": "ORG",
+      "text": "Australia"
+    },
+    {
+      "category": "type",
+      "context": "con el quinto clasificado de Sudamérica para Corea-Japón 2002 .",
+      "gold": "LOC",
+      "predicted": "ORG",
+      "text": "Sudamérica"
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "Corea-Japón 2002",
+      "predicted": "MISC",
+      "predicted_text": "Corea-Japón"
+    },
+    {
+      "category": "type",
+      "context": "contar con varios de los Socceroos que juegan en el exterior",
+      "gold": "ORG",
+      "predicted": "MISC",
+      "text": "Socceroos"
+    },
+    {
+      "category": "boundary",
+      "gold": "LOC",
+      "gold_text": "Munich",
+      "predicted": "ORG",
+      "predicted_text": "1860 Munich"
+    },
+    {
+      "category": "boundary",
+      "gold": "LOC",
+      "gold_text": "Munich",
+      "predicted": "ORG",
+      "predicted_text": "1860 Munich"
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "Sub-23 de Brasil",
+      "predicted": "MISC",
+      "predicted_text": "Sub-23"
+    },
+    {
+      "category": "spurious",
+      "context": "por primera vez en la residencia de La Granda , que",
+      "predicted": "LOC",
+      "text": "residencia"
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "Sínter de Gijón",
+      "predicted": "MISC",
+      "predicted_text": "Sínter"
+    },
+    {
+      "category": "type",
+      "context": "dio hoy, martes , a Chile de plazo hasta el 21",
+      "gold": "LOC",
+      "predicted": "ORG",
+      "text": "Chile"
+    },
+    {
+      "category": "type",
+      "context": "que la política impositiva de Chile para con las bebidas alcohólicas",
+      "gold": "LOC",
+      "predicted": "ORG",
+      "text": "Chile"
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "Economía de la Cámara de los Comunes",
+      "predicted": "MISC",
+      "predicted_text": "Economía"
+    },
+    {
+      "category": "type",
+      "context": "Para UGT de Madrid , la decisión de la",
+      "gold": "LOC",
+      "predicted": "ORG",
+      "text": "Madrid"
+    },
+    {
+      "category": "boundary",
+      "gold": "LOC",
+      "gold_text": "iglesia de San Pedro",
+      "predicted": "LOC",
+      "predicted_text": "de San Pedro"
+    },
+    {
+      "category": "type",
+      "context": "parte , el titular de Fomento presentó hoy el proyecto para",
+      "gold": "MISC",
+      "predicted": "ORG",
+      "text": "Fomento"
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "\" Tarrés Serrat \"",
+      "predicted": "MISC",
+      "predicted_text": "\""
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "\" El Observador \"",
+      "predicted": "ORG",
+      "predicted_text": "El Observador \""
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "\" Llamada de Carnaval \"",
+      "predicted": "MISC",
+      "predicted_text": "\""
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "\" Tarrés Serrat \"",
+      "predicted": "MISC",
+      "predicted_text": "\""
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "\" El último organito \"",
+      "predicted": "MISC",
+      "predicted_text": "El último organito"
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "Bolsa",
+      "predicted": "ORG",
+      "predicted_text": "Bolsa de valores de París"
+    },
+    {
+      "category": "boundary",
+      "gold": "LOC",
+      "gold_text": "París",
+      "predicted": "ORG",
+      "predicted_text": "Bolsa de valores de París"
+    },
+    {
+      "category": "type",
+      "context": "la siguiente : ACTUAL VARIACION TELEFONICA 20,66 euros + 0,63% BANCO",
+      "gold": "ORG",
+      "predicted": "MISC",
+      "text": "TELEFONICA"
+    },
+    {
+      "category": "type",
+      "context": "en las instalaciones del complejo La Manga Club , situado en la localidad",
+      "gold": "ORG",
+      "predicted": "LOC",
+      "text": "La Manga Club"
+    },
+    {
+      "category": "type",
+      "context": "mismo , de la firma Adidas y fabricado en Marruecos ,",
+      "gold": "MISC",
+      "predicted": "ORG",
+      "text": "Adidas"
+    },
+    {
+      "category": "boundary",
+      "gold": "LOC",
+      "gold_text": "hotel Príncipe Felipe",
+      "predicted": "LOC",
+      "predicted_text": "Príncipe Felipe"
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "Escuela Universitaria de Arquitectura Técnica",
+      "predicted": "ORG",
+      "predicted_text": "Escuela Universitaria de Arquitectura Técnica de Extremadura"
+    },
+    {
+      "category": "boundary",
+      "gold": "LOC",
+      "gold_text": "Extremadura",
+      "predicted": "ORG",
+      "predicted_text": "Escuela Universitaria de Arquitectura Técnica de Extremadura"
+    },
+    {
+      "category": "boundary",
+      "gold": "MISC",
+      "gold_text": "Sistema de Gestión de Prevención de Riesgos Laborales en una empresa constructora",
+      "predicted": "MISC",
+      "predicted_text": "Sistema de Gestión de Prevención de Riesgos Laborales"
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "' El Mundo '",
+      "predicted": "ORG",
+      "predicted_text": "El Mundo"
+    },
+    {
+      "category": "boundary",
+      "gold": "ORG",
+      "gold_text": "Colegio Oficial de Aparejadores. Arquitectos Técnicos",
+      "predicted": "ORG",
+      "predicted_text": "Colegio Oficial de Aparejadores. Arquitectos Técnicos de Burgos"
+    }
+  ],
+  "split": "test (esp.testb)",
+  "total_errors": 479
+}
