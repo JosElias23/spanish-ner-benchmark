@@ -1,0 +1,7 @@
+# Dependencies for the Hugging Face Space (CPU tier).
+# Kept minimal and separate from the training environment: the Space needs
+# neither the CRF baseline nor the evaluation stack.
+torch>=2.0
+transformers>=4.44,<5
+gradio>=4.0
+numpy>=1.24
