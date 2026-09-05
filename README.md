@@ -379,7 +379,13 @@ spanish-ner-beto/
 
 Stated plainly, because every one of these is a question worth being asked.
 
-**Domain.** The corpus is Spanish newswire from May 2000, from a single agency
+**Domain.** Anecdotally the model transfers better than the training data
+suggests: it correctly tags `Gabriel Boric` and `Rosanna Costa` as PER and
+`Banco Central de Chile` as ORG, none of which can appear in a Spanish corpus
+from the year 2000. That is encouraging, and it is **not evidence** — it is four
+hand-picked sentences with no gold annotations behind them.
+
+The corpus is Spanish newswire from May 2000, from a single agency
 (EFE), and heavily European in vocabulary and place names. Performance on
 Chilean text, social media, clinical notes or legal documents will be
 substantially lower and is **not measured here**. Any number in this README is a
