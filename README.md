@@ -273,6 +273,9 @@ python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\act
 pip install -e ".[dev,app]"
 ```
 
+Or skip straight to `make all`, which runs the whole pipeline end to end in the
+correct order.
+
 ```bash
 python scripts/download_data.py
 ```
