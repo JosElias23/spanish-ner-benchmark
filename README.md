@@ -286,8 +286,10 @@ Downloads the three raw corpus files and verifies their SHA-256 checksums.
 python -m pytest
 ```
 
-44 tests: corpus integrity, encoding, split overlap, entity decoding and
-sub-word label alignment. Run this before trusting any number below.
+60 tests: corpus integrity, encoding, split overlap, entity decoding, sub-word
+label alignment and the service contract. Run this before trusting any number
+below. The API tests skip themselves when no checkpoint has been trained yet, so
+a fresh clone runs green.
 
 ```bash
 python scripts/train_baselines.py
@@ -322,6 +324,69 @@ python app/app.py
 ```
 
 Serves the Gradio demo at `http://127.0.0.1:7860`.
+
+---
+
+## Serving: latency, throughput and cost
+
+A demo proves the model runs. These are the numbers an operator needs before
+putting it behind anything.
+
+Measured on a single RTX 5060 Ti, 40 iterations per batch size after five
+discarded warm-up passes, on real development-set documents averaging 24.2
+tokens. Produced by `serve/benchmark.py` and stored in
+[`reports/metrics_serving.json`](reports/metrics_serving.json).
+
+| Batch | p50 (ms) | p95 (ms) | p99 (ms) | Docs/s | USD per 1M docs |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 13.2 | 14.0 | 15.5 | 76 | 1.94 |
+| 4 | 14.6 | 15.2 | 17.9 | 274 | 0.54 |
+| 8 | 22.8 | 23.4 | 23.7 | 351 | 0.42 |
+| 16 | 40.8 | 42.0 | 42.3 | 392 | 0.38 |
+| 32 | 68.9 | 69.8 | 70.0 | 464 | 0.32 |
+| **64** | 126.6 | 128.8 | 130.0 | **506** | **0.29** |
+
+**Batching 64 documents delivers 6.7× the throughput of one-at-a-time and cuts
+cost per million documents by 85%.** Cost assumes sustained utilisation at
+USD 0.53/hour for an entry-level inference GPU and excludes network, storage and
+orchestration.
+
+The shape of that table is the point. Going from batch 1 to batch 4 costs
+1.4 ms of latency and quadruples throughput, because a batch of four barely
+fills the GPU. Going from 32 to 64 doubles latency for 9% more throughput —
+past that the device is saturated and batching only buys queueing delay. An
+interactive endpoint should sit at the left of this table and a bulk pipeline at
+the right, and neither number alone describes the system.
+
+### Running it
+
+```bash
+pip install -e ".[serve]"
+python serve/benchmark.py                    # reproduce the table above
+uvicorn serve.api:app --port 8000            # serve locally
+docker compose -f serve/docker-compose.yml up --build
+```
+
+The service exposes `POST /extract`, separate `/health` and `/ready` probes, and
+`/metrics` in Prometheus text format with rolling p50/p95/p99 over the last
+10,000 requests. Liveness and readiness are deliberately distinct: weights take
+seconds to load, and an orchestrator routing on liveness alone would send
+traffic to a pod that cannot answer.
+
+```bash
+curl -s localhost:8000/extract -H 'content-type: application/json' \
+  -d '{"texts":["El Banco Central de Chile anuncio hoy en Santiago."]}'
+```
+
+The container is multi-stage and runs as a non-root user on CPU-only torch,
+which keeps the image small enough for a free tier while still clearing 100
+documents per second at batch 64.
+
+Inference in the service runs through `predict_sentences` — the same function
+that produced every metric in this README — and a test asserts that batched and
+unbatched extraction return identical entities. Padding a short sequence beside
+a long one is exactly where an attention-mask bug hides, and it degrades output
+rather than raising.
 
 ---
 
@@ -371,7 +436,11 @@ spanish-ner-benchmark/
 │   ├── train_transformer.py    fine-tune any HF checkpoint
 │   ├── evaluate_test.py        the only script that reads the test split
 │   └── error_analysis.py       figures and error categorisation
-├── tests/                      44 tests
+├── serve/
+│   ├── api.py                  FastAPI service with probes and metrics
+│   ├── benchmark.py            latency, throughput and cost measurement
+│   └── Dockerfile              multi-stage, non-root, CPU-only
+├── tests/                      60 tests
 ├── reports/                    metrics as JSON, figures as PNG
 └── app/                        Gradio demo for Hugging Face Spaces
 ```
