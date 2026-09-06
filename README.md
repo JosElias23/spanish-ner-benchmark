@@ -9,9 +9,9 @@ End-to-end NER for Spanish on the CoNLL-2002 benchmark. Five models, one
 evaluation protocol, a single read of the held-out test set, and confidence
 intervals on every comparison.
 
-**Try it:** `python app/app.py` for an interactive Gradio demo, or
-`docker compose -f serve/docker-compose.yml up --build` for the production
-service with its latency and cost numbers. Both are described below.
+Try it: `python app/app.py` for an interactive Gradio demo, or `docker compose
+-f serve/docker-compose.yml up --build` for the production service with its
+latency and cost numbers. Both are described below.
 
 ---
 
@@ -32,8 +32,8 @@ Timings are on a single RTX 5060 Ti (8 GB), four epochs each.
 
 ![Model comparison](reports/figures/model_comparison.png)
 
-The *deduplicated* column is explained in
-[A problem with the benchmark](#a-problem-with-the-benchmark).
+The *deduplicated* column is explained in [A problem with the
+benchmark](#a-problem-with-the-benchmark).
 
 All numbers are produced by `scripts/evaluate_test.py` and stored verbatim in
 [`reports/metrics_test.json`](reports/metrics_test.json). Nothing in this README
@@ -51,8 +51,8 @@ is typed by hand.
 | mBERT | 0.8665 (2nd) | **0.8720** (1st) | ▲ 1 |
 | BETO | 0.8640 (3rd) | 0.8705 (2nd) | ▲ 1 |
 
-Selecting a model on development-set performance alone — the default in most
-tutorials — would have shipped the worst of the three transformers. This is
+Selecting a model on development-set performance alone, the default in most
+tutorials, would have shipped the worst of the three transformers. This is
 model-selection overfitting on a 1,915-sentence dev set, observed directly
 rather than described in the abstract.
 
@@ -92,17 +92,17 @@ Of BETO's 479 test-set errors:
 | Spurious | 47 | 9.8% | Entity predicted where there is none |
 | **Missed** | **16** | **3.3%** | Gold entity not found at all |
 
-The model almost always finds the entity — only 3.3% of errors are outright
+The model almost always finds the entity, only 3.3% of errors are outright
 misses. Nearly nine out of ten errors are about *labelling* something it already
 located. Effort spent on recall would be largely wasted; the payoff is in
 disambiguating types, especially ORG vs LOC, and in span boundaries.
 
 ![F1 by entity type](reports/figures/f1_by_entity_type.png)
 
-`MISC` is the weakest class for every model (BETO F1 = 0.671 vs 0.958 for `PER`).
-That is expected: `MISC` is defined negatively in the annotation guidelines — it
-is everything that is an entity but not a person, organisation or location — so
-it has no consistent surface form to learn.
+`MISC` is the weakest class for every model (BETO F1 = 0.671 vs 0.958 for
+`PER`). That is expected: `MISC` is defined negatively in the annotation
+guidelines. It is everything that is an entity but not a person, organisation or
+location. So it has no consistent surface form to learn.
 
 ---
 
@@ -137,15 +137,16 @@ Entities are IOB2-tagged across four types: LOC (4,914), ORG (7,390), PER
 
 The corpus is parsed from the raw column files by `src/spanish_ner/data.py`
 rather than through a hosted loading script, and every file is SHA-256 verified
-on load. This matters in practice: `datasets>=3` dropped support for script-based
-datasets, which broke the conventional `load_dataset("conll2002", "es")` path
-entirely.
+on load. This matters in practice: `datasets>=3` dropped support for
+script-based datasets, which broke the conventional `load_dataset("conll2002",
+"es")` path entirely.
 
 > **A parsing detail that cost real F1.** These files are UTF-8, despite this
 > corpus almost always being read as latin-1. Decoding them as latin-1 silently
-> corrupts about 27,000 accented tokens — `información` becomes `informaciÃ³n` —
+> corrupts about 27,000 accented tokens, `información` becomes `informaciÃ³n`,
 > and nothing raises. Training runs, loss decreases, and the score is quietly
-> worse. `tests/test_data.py::test_encoding_is_utf8_not_mojibake` is the tripwire.
+> worse. `tests/test_data.py::test_encoding_is_utf8_not_mojibake` is the
+> tripwire.
 
 ### A problem with the benchmark
 
@@ -164,8 +165,8 @@ Most of the overlap is newswire boilerplate, but 9.4% of test entities sit in
 sentences the model has already seen. Removing them from the official benchmark
 would break comparability with published results, so every table reports both:
 
-- **Full** — the official 1,517 sentences, comparable with the literature.
-- **Deduplicated** — the 1,208 sentences absent from training, a stricter
+- **Full**: the official 1,517 sentences, comparable with the literature.
+- **Deduplicated**: the 1,208 sentences absent from training, a stricter
   estimate of generalisation to genuinely unseen text.
 
 The ranking is unchanged, but the *cost* of deduplication is not uniform, and
@@ -180,10 +181,9 @@ the pattern is informative:
 | mBERT | 0.8720 | 0.8659 | −0.61 pts |
 
 **The more a model relies on memorisation, the more it loses when memorised
-sentences are removed.** The gazetteer — which is nothing but memorisation —
-gives up almost four times as much as the transformers. This is a direct,
-quantitative measurement of generalisation, obtained for free from a defect in
-the benchmark.
+sentences are removed.** The gazetteer, which is nothing but memorisation, gives
+up almost four times as much as the transformers. This is a direct, quantitative
+measurement of generalisation, obtained for free from a defect in the benchmark.
 
 These counts are pinned in `tests/test_data.py::TestSplitOverlap`, so if the raw
 data ever changes the test suite fails rather than the metrics drifting.
@@ -197,8 +197,8 @@ the next one's score interpretable.
 
 **1. Gazetteer.** Memorise every entity surface form in the training set;
 longest-match at inference; resolve type ambiguity by majority vote. This is the
-floor, and it quantifies how much of the task is pure memorisation
-(F1 = 0.36 — about 41% of BETO's score with no learning at all).
+floor, and it quantifies how much of the task is pure memorisation (F1 = 0.36.
+About 41% of BETO's score with no learning at all).
 
 **2. CRF.** A linear-chain conditional random field over hand-designed features:
 casing, prefixes and suffixes up to three characters, digit and hyphen patterns,
@@ -228,8 +228,8 @@ Labels must be re-projected onto sub-tokens. We label the **first** sub-token of
 each word and assign `-100` to the rest; PyTorch's cross-entropy ignores `-100`,
 so continuation sub-tokens contribute no loss and no gradient.
 
-The alternative — repeating the label on every sub-token — over-weights long
-words in the loss and makes decoding ambiguous when sub-tokens of the same word
+The alternative, repeating the label on every sub-token, over-weights long words
+in the loss and makes decoding ambiguous when sub-tokens of the same word
 disagree. It also requires converting `B-` to `I-` on continuations, or the
 decoded sequence contains two adjacent `B-ORG` tags and splits one entity into
 two. Both strategies are implemented; `--label-all-subtokens` runs the ablation.
@@ -237,7 +237,7 @@ two. Both strategies are implemented; `--label-all-subtokens` runs the ablation.
 Misaligned labels are the classic silent failure in NER fine-tuning: the model
 trains, the loss falls, and the target was wrong the whole time. Ten tests in
 `tests/test_modeling.py` pin the alignment contract, including one that asserts
-the test word actually splits into sub-tokens — otherwise the other tests would
+the test word actually splits into sub-tokens. Otherwise the other tests would
 pass while proving nothing.
 
 ### Evaluation protocol
@@ -251,8 +251,8 @@ pass while proving nothing.
   hyperparameters, early stopping and error analysis all run on dev.
 - **Best epoch by dev F1 is kept**, not the last, so a model that peaks at epoch
   3 and overfits at epoch 4 is not reported at its worst.
-- **Reported scores are recomputed through `predict_sentences`** — the same
-  inference path the demo uses — rather than trusting the `Trainer`'s internal
+- **Reported scores are recomputed through `predict_sentences`**, the same
+  inference path the demo uses, rather than trusting the `Trainer`'s internal
   loop. If the two ever disagree, the deployed model is not the one measured.
 - **Paired bootstrap** on 10,000 resamples for every comparison. Both models are
   scored on the same resampled sentences, controlling for the fact that some
@@ -353,16 +353,16 @@ tokens. Produced by `serve/benchmark.py` and stored in
 | **64** | 126.6 | 128.8 | 130.0 | **506** | **0.29** |
 
 **Batching 64 documents delivers 6.7× the throughput of one-at-a-time and cuts
-cost per million documents by 85%.** Cost assumes sustained utilisation at
-USD 0.53/hour for an entry-level inference GPU and excludes network, storage and
+cost per million documents by 85%.** Cost assumes sustained utilisation at USD
+0.53/hour for an entry-level inference GPU and excludes network, storage and
 orchestration.
 
-The shape of that table is the point. Going from batch 1 to batch 4 costs
-1.4 ms of latency and quadruples throughput, because a batch of four barely
-fills the GPU. Going from 32 to 64 doubles latency for 9% more throughput —
-past that the device is saturated and batching only buys queueing delay. An
-interactive endpoint should sit at the left of this table and a bulk pipeline at
-the right, and neither number alone describes the system.
+The shape of that table is the point. Going from batch 1 to batch 4 costs 1.4 ms
+of latency and quadruples throughput, because a batch of four barely fills the
+GPU. Going from 32 to 64 doubles latency for 9% more throughput. Past that the
+device is saturated and batching only buys queueing delay. An interactive
+endpoint should sit at the left of this table and a bulk pipeline at the right,
+and neither number alone describes the system.
 
 ### Running it
 
@@ -388,8 +388,8 @@ The container is multi-stage and runs as a non-root user on CPU-only torch,
 which keeps the image small enough for a free tier while still clearing 100
 documents per second at batch 64.
 
-Inference in the service runs through `predict_sentences` — the same function
-that produced every metric in this README — and a test asserts that batched and
+Inference in the service runs through `predict_sentences`, the same function
+that produced every metric in this README, and a test asserts that batched and
 unbatched extraction return identical entities. Padding a short sequence beside
 a long one is exactly where an attention-mask bug hides, and it degrades output
 rather than raising.
@@ -398,7 +398,7 @@ rather than raising.
 
 ## Deploying the demo
 
-The trained checkpoint is not committed — it is 440 MB and regenerable in under
+The trained checkpoint is not committed. It is 440 MB and regenerable in under
 two minutes by `scripts/train_transformer.py`. Publishing the demo therefore
 means publishing the weights first.
 
@@ -408,10 +408,11 @@ huggingface-cli upload JosElias23/spanish-ner-beto \
     models/bert-base-spanish-wwm-cased/best
 ```
 
-Then create a Space at [huggingface.co/new-space](https://huggingface.co/new-space)
-with SDK **Gradio** and hardware **CPU basic (free)**, copy `app/app.py` and
-`app/requirements.txt` into it unchanged, and set the Space variable
-`NER_MODEL_PATH` to `JosElias23/spanish-ner-beto`.
+Then create a Space at
+[huggingface.co/new-space](https://huggingface.co/new-space) with SDK **Gradio**
+and hardware **CPU basic (free)**, copy `app/app.py` and `app/requirements.txt`
+into it unchanged, and set the Space variable `NER_MODEL_PATH` to
+`JosElias23/spanish-ner-beto`.
 
 That variable is the only thing that differs between environments: the app reads
 it and falls back to the local checkpoint path when it is unset, so exactly the
@@ -460,14 +461,14 @@ Stated plainly, because every one of these is a question worth being asked.
 **Domain.** Anecdotally the model transfers better than the training data
 suggests: it correctly tags `Gabriel Boric` and `Rosanna Costa` as PER and
 `Banco Central de Chile` as ORG, none of which can appear in a Spanish corpus
-from the year 2000. That is encouraging, and it is **not evidence** — it is four
+from the year 2000. That is encouraging, and it is **not evidence**. It is four
 hand-picked sentences with no gold annotations behind them.
 
-The corpus is Spanish newswire from May 2000, from a single agency
-(EFE), and heavily European in vocabulary and place names. Performance on
-Chilean text, social media, clinical notes or legal documents will be
-substantially lower and is **not measured here**. Any number in this README is a
-claim about EFE newswire and nothing else.
+The corpus is Spanish newswire from May 2000, from a single agency (EFE), and
+heavily European in vocabulary and place names. Performance on Chilean text,
+social media, clinical notes or legal documents will be substantially lower and
+is **not measured here**. Any number in this README is a claim about EFE
+newswire and nothing else.
 
 **MISC is weak.** F1 = 0.671, against 0.958 for PER. The class is defined
 negatively in the annotation guidelines, so it has no consistent surface form.
@@ -476,7 +477,7 @@ Improving it likely needs a different formulation, not more training data.
 **Single seed.** Each configuration was trained once with seed 42. The bootstrap
 quantifies uncertainty from the *test sample*, not from training-run variance.
 Seed variance for BERT fine-tuning on a corpus this size is typically a few
-tenths of an F1 point — comparable to the BETO/mBERT gap, which reinforces
+tenths of an F1 point. Comparable to the BETO/mBERT gap, which reinforces
 finding 2 rather than undermining it. Training each model across five seeds and
 reporting mean ± standard deviation is the correct next step and is not done
 here.
@@ -526,5 +527,5 @@ runs to settle.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). The CoNLL-2002 corpus is distributed by the
+**MIT, see [LICENSE](LICENSE).** The CoNLL-2002 corpus is distributed by the
 University of Antwerp under its own terms.
