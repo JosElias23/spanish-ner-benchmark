@@ -1,0 +1,82 @@
+{
+  "batching_speedup": 6.7,
+  "by_batch_size": [
+    {
+      "batch_size": 1,
+      "documents_per_second": 76.0,
+      "mean_ms": 12.18,
+      "ms_per_document": 13.16,
+      "p50_ms": 13.16,
+      "p95_ms": 14.03,
+      "p99_ms": 15.53,
+      "usd_per_million_documents": 1.94
+    },
+    {
+      "batch_size": 4,
+      "documents_per_second": 273.7,
+      "mean_ms": 14.2,
+      "ms_per_document": 3.653,
+      "p50_ms": 14.61,
+      "p95_ms": 15.15,
+      "p99_ms": 17.93,
+      "usd_per_million_documents": 0.54
+    },
+    {
+      "batch_size": 8,
+      "documents_per_second": 351.1,
+      "mean_ms": 22.39,
+      "ms_per_document": 2.848,
+      "p50_ms": 22.78,
+      "p95_ms": 23.45,
+      "p99_ms": 23.66,
+      "usd_per_million_documents": 0.42
+    },
+    {
+      "batch_size": 16,
+      "documents_per_second": 392.0,
+      "mean_ms": 40.19,
+      "ms_per_document": 2.551,
+      "p50_ms": 40.81,
+      "p95_ms": 42.05,
+      "p99_ms": 42.32,
+      "usd_per_million_documents": 0.38
+    },
+    {
+      "batch_size": 32,
+      "documents_per_second": 464.5,
+      "mean_ms": 68.27,
+      "ms_per_document": 2.153,
+      "p50_ms": 68.89,
+      "p95_ms": 69.85,
+      "p99_ms": 70.02,
+      "usd_per_million_documents": 0.32
+    },
+    {
+      "batch_size": 64,
+      "documents_per_second": 505.7,
+      "mean_ms": 125.95,
+      "ms_per_document": 1.978,
+      "p50_ms": 126.56,
+      "p95_ms": 128.85,
+      "p99_ms": 129.96,
+      "usd_per_million_documents": 0.29
+    }
+  ],
+  "cost_note": "Cost assumes sustained utilisation at the stated on-demand hourly rate and excludes network, storage and orchestration overhead.",
+  "environment": {
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10",
+    "torch": "2.11.0+cu128"
+  },
+  "hourly_rate_usd": {
+    "cpu_2vcpu": 0.1,
+    "gpu_t4": 0.53
+  },
+  "iterations_per_batch_size": 40,
+  "max_length": 256,
+  "mean_tokens_per_document": 24.2,
+  "model": "C:\\Users\\jsanh\\Desktop\\Proyectos Github\\spanish-ner-benchmark\\models\\bert-base-spanish-wwm-cased\\best",
+  "warmup_iterations": 5
+}

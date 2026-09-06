@@ -1,0 +1,23 @@
+# Local run:
+#   docker compose -f serve/docker-compose.yml up --build
+#
+# Point NER_MODEL_PATH at a Hugging Face repo id to pull published weights, or
+# mount a local checkpoint directory as shown below.
+services:
+  ner:
+    build:
+      context: ..
+      dockerfile: serve/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      NER_MODEL_PATH: ${NER_MODEL_PATH:-/models/best}
+      NER_MAX_BATCH: "64"
+    volumes:
+      - ../models/bert-base-spanish-wwm-cased:/models:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,json,sys; r=json.load(urllib.request.urlopen('http://localhost:8000/ready',timeout=4)); sys.exit(0 if r.get('ready') else 1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 90s
+      retries: 3

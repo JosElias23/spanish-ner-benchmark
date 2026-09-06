@@ -3,7 +3,10 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+# The repository root too, so tests can import the `serve` package.
+sys.path.insert(0, str(ROOT))
 
 from spanish_ner.data import load_all  # noqa: E402
 from spanish_ner.utils import load_config  # noqa: E402

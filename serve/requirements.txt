@@ -1,0 +1,9 @@
+# Runtime dependencies for the inference service.
+# torch is installed separately in the Dockerfile from the CPU-only index.
+transformers>=4.44,<5
+huggingface-hub>=0.34,<1.0
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.0
+numpy>=1.24
+pyyaml>=6.0

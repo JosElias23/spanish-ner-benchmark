@@ -27,6 +27,12 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7.4", "ruff>=0.5"]
 app = ["gradio>=5,<6"]
+serve = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.0",
+    "httpx>=0.27",          # required by fastapi's TestClient
+]
 
 [build-system]
 requires = ["setuptools>=68"]
