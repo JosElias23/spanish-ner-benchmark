@@ -133,16 +133,25 @@ def main() -> int:
     single = results[0]
     speedup = best["documents_per_second"] / single["documents_per_second"]
 
+    # Store the checkpoint location relative to the repository root. An absolute
+    # path would publish the developer's home directory and folder layout into a
+    # committed artefact, which is both a small information leak and useless to
+    # anyone else reading the file.
+    try:
+        recorded_model = str(Path(model_path).resolve().relative_to(PROJECT_ROOT))
+    except ValueError:
+        recorded_model = Path(model_path).name
+
     save_json(
         {
             "environment": {
                 "device": device,
                 "gpu": torch.cuda.get_device_name(0) if device == "cuda" else None,
                 "torch": torch.__version__,
-                "platform": platform.platform(),
+                "platform": f"{platform.system()} {platform.release()}",
                 "python": platform.python_version(),
             },
-            "model": model_path,
+            "model": recorded_model,
             "max_length": max_length,
             "iterations_per_batch_size": args.iterations,
             "warmup_iterations": WARMUP,
