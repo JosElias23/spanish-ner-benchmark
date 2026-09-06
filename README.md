@@ -9,8 +9,9 @@ End-to-end NER for Spanish on the CoNLL-2002 benchmark. Five models, one
 evaluation protocol, a single read of the held-out test set, and confidence
 intervals on every comparison.
 
-**Live demo:** _(deployment instructions in [Deploying the demo](#deploying-the-demo);
-replace this line with the Space URL once published)_
+**Try it:** `python app/app.py` for an interactive Gradio demo, or
+`docker compose -f serve/docker-compose.yml up --build` for the production
+service with its latency and cost numbers. Both are described below.
 
 ---
 
@@ -397,24 +398,24 @@ rather than raising.
 
 ## Deploying the demo
 
-The demo runs on the Hugging Face Spaces free CPU tier.
+The trained checkpoint is not committed — it is 440 MB and regenerable in under
+two minutes by `scripts/train_transformer.py`. Publishing the demo therefore
+means publishing the weights first.
 
-1. Create a Space at [huggingface.co/new-space](https://huggingface.co/new-space),
-   SDK **Gradio**, hardware **CPU basic (free)**.
-2. Push the trained checkpoint to a model repository:
+```bash
+huggingface-cli login
+huggingface-cli upload JosElias23/spanish-ner-beto \
+    models/bert-base-spanish-wwm-cased/best
+```
 
-   ```bash
-   huggingface-cli login
-   huggingface-cli upload <your-username>/spanish-ner-benchmark \
-       models/bert-base-spanish-wwm-cased/best
-   ```
+Then create a Space at [huggingface.co/new-space](https://huggingface.co/new-space)
+with SDK **Gradio** and hardware **CPU basic (free)**, copy `app/app.py` and
+`app/requirements.txt` into it unchanged, and set the Space variable
+`NER_MODEL_PATH` to `JosElias23/spanish-ner-beto`.
 
-3. Copy `app/app.py` and `app/requirements.txt` into the Space repository,
-   renaming nothing.
-4. Set the Space secret `NER_MODEL_PATH` to `<your-username>/spanish-ner-benchmark`.
-   The app reads that variable and falls back to the local checkpoint path when
-   it is unset, so the same file runs locally and in production.
-5. Push. The Space builds in a few minutes.
+That variable is the only thing that differs between environments: the app reads
+it and falls back to the local checkpoint path when it is unset, so exactly the
+same file runs on a laptop and in the Space.
 
 BETO is the deployed model rather than mBERT. The two are statistically
 indistinguishable (ΔF1 = 0.0015, p = 0.75), and given a tie the Spanish-specific
