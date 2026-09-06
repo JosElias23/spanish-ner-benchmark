@@ -1,5 +1,10 @@
 # Spanish Named Entity Recognition: from lookup tables to transformers
 
+[![CI](https://github.com/JosElias23/spanish-ner-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/JosElias23/spanish-ner-benchmark/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-60%20passing-brightgreen)](https://github.com/JosElias23/spanish-ner-benchmark/actions/workflows/ci.yml)
+[![python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 End-to-end NER for Spanish on the CoNLL-2002 benchmark. Five models, one
 evaluation protocol, a single read of the held-out test set, and confidence
 intervals on every comparison.
