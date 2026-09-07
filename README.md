@@ -104,6 +104,9 @@ disambiguating types, especially ORG vs LOC, and in span boundaries.
 guidelines. It is everything that is an entity but not a person, organisation or
 location. So it has no consistent surface form to learn.
 
+The full decision log, including the choices that changed these numbers and
+the ones that turned out not to, is in [`docs/DECISIONS.md`](docs/DECISIONS.md).
+
 ---
 
 ## The task
