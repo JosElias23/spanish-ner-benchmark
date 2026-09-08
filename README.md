@@ -413,9 +413,21 @@ huggingface-cli upload JosElias23/spanish-ner-beto \
 
 Then create a Space at
 [huggingface.co/new-space](https://huggingface.co/new-space) with SDK **Gradio**
-and hardware **CPU basic (free)**, copy `app/app.py` and `app/requirements.txt`
-into it unchanged, and set the Space variable `NER_MODEL_PATH` to
-`JosElias23/spanish-ner-beto`.
+and hardware **CPU basic (free)**, and give it this layout:
+
+```
+app.py              <- app/app.py, unchanged
+requirements.txt    <- app/requirements.txt, unchanged
+spanish_ner/        <- the whole src/spanish_ner package
+```
+
+Copying only the two files is not enough. The app imports `predict_sentences`
+and `iter_entities` from the package on purpose, so that the demo runs the same
+inference code that produced the reported metrics, and the package has to travel
+with it. At the Space root, `spanish_ner/` is importable directly; the
+`sys.path` line in `app.py` resolves to nothing there and is simply inert.
+
+Finally set the Space variable `NER_MODEL_PATH` to `JosElias23/spanish-ner-beto`.
 
 That variable is the only thing that differs between environments: the app reads
 it and falls back to the local checkpoint path when it is unset, so exactly the
