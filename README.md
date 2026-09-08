@@ -5,6 +5,8 @@
 [![python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+**English** · [Español](README.es.md)
+
 End-to-end NER for Spanish on the CoNLL-2002 benchmark. Five models, one
 evaluation protocol, a single read of the held-out test set, and confidence
 intervals on every comparison.
