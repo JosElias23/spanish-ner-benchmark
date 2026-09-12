@@ -117,6 +117,34 @@ def _micro_f1(counts: np.ndarray) -> float:
     return 0.0 if precision + recall == 0 else 2 * precision * recall / (precision + recall)
 
 
+def holm_adjust(p_values: dict) -> dict:
+    """Holm-Bonferroni step-down, for a family of comparisons run at once.
+
+    Ten pairwise tests at alpha = 0.05 reject something about 40% of the time
+    when every null is true. Reporting the smallest of them as if it were a
+    single pre-registered test is the most common way a model comparison
+    overstates itself, and it is the mistake this repository made: it ran four
+    comparisons against a reference arm and printed "Significant: yes" on the
+    one that cleared 0.05 by 0.0003.
+
+    Holm is used rather than Bonferroni because it is uniformly more powerful
+    and no less valid: sort ascending, multiply the k-th smallest by (m - k),
+    then enforce monotonicity so an adjusted p can never fall below one that
+    precedes it.
+
+    Returns {key: adjusted_p} over the same keys it was given.
+    """
+    if not p_values:
+        return {}
+    ordered = sorted(p_values.items(), key=lambda kv: kv[1])
+    m = len(ordered)
+    adjusted, running = {}, 0.0
+    for rank, (key, raw) in enumerate(ordered):
+        running = max(running, min(1.0, (m - rank) * raw))
+        adjusted[key] = round(running, 4)
+    return adjusted
+
+
 def paired_bootstrap(
     counts_a: np.ndarray,
     counts_b: np.ndarray,

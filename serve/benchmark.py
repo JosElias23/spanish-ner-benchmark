@@ -21,7 +21,7 @@ iterations run first and are discarded.
 
 Usage:
     python serve/benchmark.py
-    python serve/benchmark.py --device cpu --iterations 100
+    python serve/benchmark.py --device cpu --iterations 5
 """
 
 from __future__ import annotations
@@ -45,18 +45,34 @@ from spanish_ner.utils import PROJECT_ROOT, load_config, save_json, setup_loggin
 BATCH_SIZES = (1, 4, 8, 16, 32, 64)
 WARMUP = 5
 
+# Divisible by every batch size above, so every row of the table processes the
+# identical workload and the only thing that changes is how it is grouped.
+POOL_DOCUMENTS = 512
+
 # Representative on-demand prices, September 2026. Stated explicitly because a
 # cost figure without its assumption is not a cost figure.
+# These are rented-hardware prices, and the throughput they are multiplied by is
+# this machine's. The cost column is therefore "what this throughput would cost
+# at this rate", not "what this workload costs on a T4" -- an RTX 5060 Ti is
+# considerably faster than a T4, so a real T4 would bill more per million
+# documents. The mismatch is named in the report and in the README rather than
+# left for a reader to infer from a rate key.
 HOURLY_RATES_USD = {
     "cpu_2vcpu": 0.10,   # a small general-purpose instance
-    "gpu_t4": 0.53,      # a single entry-level inference GPU
+    "gpu_t4": 0.53,      # NVIDIA T4, an entry-level inference GPU
 }
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--device", default=None, choices=["cpu", "cuda"])
-    p.add_argument("--iterations", type=int, default=50)
+    p.add_argument("--out", default=None,
+                   help="report path; defaults to reports/metrics_serving.json "
+                        "for cuda and reports/metrics_serving_cpu.json for cpu, "
+                        "so a CPU run cannot silently overwrite a GPU one")
+    p.add_argument("--iterations", type=int, default=3,
+                   help="passes over the 512-document pool per batch "
+                        "size; each pass times every batch in it")
     p.add_argument("--model", default=None)
     return p.parse_args()
 
@@ -84,35 +100,57 @@ def main() -> int:
 
     # Real sentences from the development split, so token counts and therefore
     # latency reflect the distribution the model actually sees.
+    #
+    # Every batch size processes this SAME pool, in chunks. An earlier version
+    # timed `pool[:batch_size]`, so batch 1 was timed on one specific sentence
+    # and batch 64 on a different set of 64 -- which makes the cross-row
+    # comparison, and the headline batching speed-up read off it, a mixture of
+    # batch size and which documents happened to be measured. 512 is divisible
+    # by every batch size here, so each row does identical work.
     dev = load_split("dev", config)
-    pool: list[Sentence] = dev[:512]
+    pool: list[Sentence] = dev[:POOL_DOCUMENTS]
     mean_tokens = float(np.mean([len(s) for s in pool]))
-    log.info("Device %s | %d parameters | mean %.1f tokens per document",
-             device, sum(p.numel() for p in model.parameters()), mean_tokens)
+    log.info("Device %s | %d parameters | %d documents, mean %.1f tokens each",
+             device, sum(p.numel() for p in model.parameters()), len(pool),
+             mean_tokens)
 
     results = []
     for batch_size in BATCH_SIZES:
-        batch = pool[:batch_size]
+        chunks = [pool[i : i + batch_size] for i in range(0, len(pool), batch_size)]
+        chunks = [c for c in chunks if len(c) == batch_size]
+        documents = len(chunks) * batch_size
 
         for _ in range(WARMUP):
-            predict_sentences(batch, model, tokenizer, max_length, batch_size, device)
+            predict_sentences(chunks[0], model, tokenizer, max_length, batch_size,
+                              device)
         if device == "cuda":
             torch.cuda.synchronize()
 
+        # Two quantities, deliberately separated. `latencies_ms` is what one
+        # caller waits for one batch, now measured over many different batches
+        # rather than one. `pass_seconds` is the wall clock for the identical
+        # 512-document workload, which is what the throughput column is about.
         latencies_ms: list[float] = []
+        pass_seconds: list[float] = []
         for _ in range(args.iterations):
-            started = time.perf_counter()
-            predict_sentences(batch, model, tokenizer, max_length, batch_size, device)
-            if device == "cuda":
-                torch.cuda.synchronize()
-            latencies_ms.append((time.perf_counter() - started) * 1000)
+            pass_started = time.perf_counter()
+            for chunk in chunks:
+                started = time.perf_counter()
+                predict_sentences(chunk, model, tokenizer, max_length, batch_size,
+                                  device)
+                if device == "cuda":
+                    torch.cuda.synchronize()
+                latencies_ms.append((time.perf_counter() - started) * 1000)
+            pass_seconds.append(time.perf_counter() - pass_started)
 
         p50 = percentile(latencies_ms, 50)
-        throughput = batch_size / (p50 / 1000)
+        throughput = documents / float(np.median(pass_seconds))
         rate = HOURLY_RATES_USD["gpu_t4" if device == "cuda" else "cpu_2vcpu"]
 
         entry = {
             "batch_size": batch_size,
+            "documents_timed": documents,
+            "batches_timed": len(chunks) * args.iterations,
             "p50_ms": round(p50, 2),
             "p95_ms": round(percentile(latencies_ms, 95), 2),
             "p99_ms": round(percentile(latencies_ms, 99), 2),
@@ -153,18 +191,33 @@ def main() -> int:
             },
             "model": recorded_model,
             "max_length": max_length,
-            "iterations_per_batch_size": args.iterations,
+            "passes_per_batch_size": args.iterations,
             "warmup_iterations": WARMUP,
+            "documents_per_row": POOL_DOCUMENTS,
             "mean_tokens_per_document": round(mean_tokens, 1),
             "hourly_rate_usd": HOURLY_RATES_USD,
+            "priced_hardware": "gpu_t4" if device == "cuda" else "cpu_2vcpu",
+            "measured_hardware": (
+                torch.cuda.get_device_name(0) if device == "cuda" else "this CPU"),
             "cost_note": (
                 "Cost assumes sustained utilisation at the stated on-demand hourly "
-                "rate and excludes network, storage and orchestration overhead."
+                "rate and excludes network, storage and orchestration overhead. The "
+                "rate and the throughput come from DIFFERENT hardware: the price is "
+                "an NVIDIA T4's and the throughput is this machine's, so on a real "
+                "T4 the cost per million documents would be higher. The column is a "
+                "rate times a measured throughput, not a quote."
+            ),
+            "workload_note": (
+                "Every batch size processes the same "
+                f"{POOL_DOCUMENTS} documents, in chunks. p50/p95/p99 are per-batch "
+                "latencies over every chunk of every pass; documents_per_second is "
+                "the whole pool divided by the median pass time."
             ),
             "by_batch_size": results,
             "batching_speedup": round(speedup, 1),
         },
-        "reports/metrics_serving.json",
+        args.out or ("reports/metrics_serving.json" if device == "cuda"
+                     else "reports/metrics_serving_cpu.json"),
     )
 
     print()

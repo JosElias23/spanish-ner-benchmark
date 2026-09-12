@@ -1,15 +1,15 @@
 # Spanish Named Entity Recognition: from lookup tables to transformers
 
 [![CI](https://github.com/JosElias23/spanish-ner-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/JosElias23/spanish-ner-benchmark/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-60%20passing-brightgreen)](https://github.com/JosElias23/spanish-ner-benchmark/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-73%20passing-brightgreen)](https://github.com/JosElias23/spanish-ner-benchmark/actions/workflows/ci.yml)
 [![python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 **English** · [Español](README.es.md)
 
 End-to-end NER for Spanish on the CoNLL-2002 benchmark. Five models, one
-evaluation protocol, a single read of the held-out test set, and confidence
-intervals on every comparison.
+evaluation protocol, nothing selected on the held-out test set, and confidence
+intervals on every comparison — with a Holm correction over the ten of them.
 
 Try it: `python app/app.py` for an interactive Gradio demo, or `docker compose
 -f serve/docker-compose.yml up --build` for the production service with its
@@ -54,32 +54,76 @@ is typed by hand.
 | BETO | 0.8640 (3rd) | 0.8705 (2nd) | ▲ 1 |
 
 Selecting a model on development-set performance alone, the default in most
-tutorials, would have shipped the worst of the three transformers. This is
+tutorials, would have shipped the model that finished last on test. This is
 model-selection overfitting on a 1,915-sentence dev set, observed directly
 rather than described in the abstract.
 
-XLM-R is also the most expensive model in the comparison by a wide margin: 277 M
-parameters and 452 s of training against BETO's 109 M and 105 s, a 4.3x cost for
-the lowest test score. Bigger and more multilingual was, here, strictly worse on
-every axis that matters.
+**What the ranking does not mean.** An earlier version of this section called
+XLM-R "the worst of the three transformers" and said bigger and more
+multilingual was "strictly worse on every axis that matters". The ranking is
+real; the gaps behind it are not distinguishable from noise. Once all ten
+pairwise comparisons are corrected for multiplicity (finding 2), no pair of
+transformers separates on the test set — XLM-R against BETO is p = 0.30, XLM-R
+against mBERT p = 0.13. The honest statement is that XLM-R led dev and finished
+last on test by margins this test set cannot resolve.
+
+What survives without qualification is the cost. XLM-R is 277 M parameters and
+452 s of training against BETO's 109 M and 105 s — a 4.3× cost for a score that
+is, at best, the same.
 
 ### 2. A Spanish-specific encoder gives no measurable advantage here
 
-Paired bootstrap, 10,000 resamples, against the top-ranked model:
+This is the hypothesis the project was built to test, so it is named in the code
+as the confirmatory comparison and reported on its own, unadjusted:
 
 | Comparison | ΔF1 | 95% CI | p | Significant |
 |---|---:|:--|---:|:--:|
-| mBERT vs BETO | +0.0015 | [−0.0086, +0.0113] | 0.75 | **no** |
-| mBERT vs XLM-R | +0.0098 | [+0.0003, +0.0195] | 0.04 | yes |
-| mBERT vs CRF | +0.0797 | [+0.0624, +0.0978] | <0.001 | yes |
-| mBERT vs Gazetteer | +0.5125 | [+0.4931, +0.5316] | <0.001 | yes |
+| BETO vs mBERT | −0.0015 | [−0.0113, +0.0086] | 0.75 | **no** |
 
-BETO and mBERT are statistically indistinguishable. The project set out to test
-the hypothesis that a Spanish-specific model beats a multilingual one on Spanish
-NER, and **on this benchmark that hypothesis is not supported.**
+**BETO and mBERT are statistically indistinguishable, and on this benchmark the
+Spanish-specific hypothesis is not supported.** Reporting `mBERT 0.8720 > BETO
+0.8705` as a result would have been a claim about sampling noise.
 
-Reporting `mBERT 0.8720 > BETO 0.8705` as a result would have been a claim about
-sampling noise. A one-point F1 gap on 1,517 sentences usually is.
+Everything else is exploratory: all ten pairs, in alphabetical order, with a
+Holm correction over the family.
+
+| Comparison | ΔF1 | 95% CI | p | p (Holm) | Significant |
+|---|---:|:--|---:|---:|:--:|
+| BETO vs gazetteer | +0.5110 | [+0.4934, +0.5290] | <0.001 | <0.001 | yes |
+| gazetteer vs mBERT | −0.5125 | [−0.5316, −0.4931] | <0.001 | <0.001 | yes |
+| gazetteer vs XLM-R | −0.5027 | [−0.5231, −0.4817] | <0.001 | <0.001 | yes |
+| CRF vs gazetteer | +0.4329 | [+0.4150, +0.4508] | <0.001 | <0.001 | yes |
+| BETO vs CRF | +0.0782 | [+0.0614, +0.0953] | <0.001 | <0.001 | yes |
+| CRF vs mBERT | −0.0797 | [−0.0978, −0.0624] | <0.001 | <0.001 | yes |
+| CRF vs XLM-R | −0.0698 | [−0.0887, −0.0520] | <0.001 | <0.001 | yes |
+| mBERT vs XLM-R | +0.0098 | [+0.0003, +0.0195] | 0.042 | **0.126** | **no** |
+| BETO vs XLM-R | +0.0083 | [−0.0028, +0.0207] | 0.151 | 0.303 | no |
+| BETO vs mBERT | −0.0015 | [−0.0113, +0.0086] | 0.752 | 0.752 | no |
+
+> **Correction.** This table used to have four rows, all against mBERT, and
+> mBERT was chosen because it had the highest test F1:
+>
+> ```python
+> ranked = sorted(results, key=lambda n: results[n]["full"]["overall"]["f1"],
+>                 reverse=True)
+> for challenger in ranked[1:]:
+>     comparisons[f"{ranked[0]}_vs_{challenger}"] = paired_bootstrap(...)
+> ```
+>
+> The reference arm was picked by its score on the same data the p-values come
+> from, which biases every comparison toward it, and four tests were printed as
+> if each were a single pre-registered one. The row that mattered was **mBERT
+> vs XLM-R at p = 0.042, marked "Significant: yes"** — it clears 0.05 by 0.008
+> and its interval clears zero by 0.0003 F1. Under Holm it is **0.126**, and it
+> is not a finding.
+>
+> The comparison the ranking-first protocol could never produce is BETO vs
+> XLM-R, because neither was the winner. It is p = 0.151, which is why finding 1
+> above no longer calls XLM-R the worst of anything.
+>
+> One thing worth noting in the other direction: the bias ran *against* the
+> project's own conclusion. mBERT was the arm selection favoured, and BETO still
+> could not be separated from it. Finding 2 was conservative, not flattered.
 
 ### 3. Detection is solved; classification is not
 
@@ -171,8 +215,16 @@ sentences the model has already seen. Removing them from the official benchmark
 would break comparability with published results, so every table reports both:
 
 - **Full**: the official 1,517 sentences, comparable with the literature.
-- **Deduplicated**: the 1,208 sentences absent from training, a stricter
-  estimate of generalisation to genuinely unseen text.
+- **Deduplicated**: the 1,166 *distinct* sentences absent from training, a
+  stricter estimate of generalisation to genuinely unseen text.
+
+  That number used to read 1,208 here, which is the count after removing test
+  sentences that occur in training but before removing the 42 that repeat
+  within the test set itself. `scripts/evaluate_test.py` has always dropped
+  both — a sentence of boilerplate appearing four times should not be weighted
+  four times in a memorisation-free measurement — but only the first step was
+  described, so the prose named a set 42 sentences larger than the one that was
+  scored. `reports/metrics_test.json` now records all three counts.
 
 The ranking is unchanged, but the *cost* of deduplication is not uniform, and
 the pattern is informative:
@@ -185,10 +237,46 @@ the pattern is informative:
 | BETO | 0.8705 | 0.8642 | −0.63 pts |
 | mBERT | 0.8720 | 0.8659 | −0.61 pts |
 
-**The more a model relies on memorisation, the more it loses when memorised
-sentences are removed.** The gazetteer, which is nothing but memorisation, gives
-up almost four times as much as the transformers. This is a direct, quantitative
-measurement of generalisation, obtained for free from a defect in the benchmark.
+The drop is ordered exactly by overall F1, and that is the problem with the
+reading an earlier version of this section gave it.
+
+> **Correction.** This used to say: "the more a model relies on memorisation,
+> the more it loses when memorised sentences are removed — the gazetteer, which
+> is nothing but memorisation, gives up almost four times as much as the
+> transformers", and called it a direct measurement of generalisation.
+>
+> Two checks break it, and both use only the numbers already on this page.
+>
+> **The drop ordering is the F1 ordering, reversed, exactly.** Spearman
+> correlation between overall test F1 and drop across the five models is
+> **−1.00**. A perfect rank correlation across five models is the signature of
+> an arithmetic constraint, not of a behavioural difference.
+>
+> **The constraint is headroom.** Removing the duplicated sentences removes
+> 9.4% of test entities. Treating micro-F1 as approximately a weighted average
+> over the two portions, a model that scored *perfectly* on the removed 9.4%
+> could drop at most `0.094 × (1 − F1) / 0.906` when they go:
+>
+> | Model | Test F1 | Largest drop arithmetic allows | Observed |
+> |---|---:|---:|---:|
+> | Gazetteer | 0.3595 | 6.64 pts | 2.31 |
+> | CRF | 0.7924 | 2.15 pts | 1.55 |
+> | XLM-R | 0.8622 | 1.43 pts | 0.92 |
+> | BETO | 0.8705 | 1.34 pts | 0.63 |
+> | mBERT | 0.8720 | 1.33 pts | 0.61 |
+>
+> The ceiling ratio between gazetteer and mBERT is **5.0×** before any
+> behaviour enters. The observed ratio is **3.8×** — *below* the mechanical
+> bound. A low-scoring model has more room to fall, and these drops are
+> entirely consistent with that and with nothing else.
+>
+> What the table does show is smaller and still worth keeping: every model loses
+> something, so every model was getting some credit from sentences it had seen
+> in training, and the deduplicated column is the more honest estimate. What it
+> does not show is which model relied on memorisation more. Separating that
+> would need each model's score *on the duplicated sentences* compared against
+> like-for-like sentences absent from training, and that experiment is not run
+> here.
 
 These counts are pinned in `tests/test_data.py::TestSplitOverlap`, so if the raw
 data ever changes the test suite fails rather than the metrics drifting.
@@ -251,9 +339,14 @@ pass while proving nothing.
   prediction counts only if type *and* both boundaries are exact. Token-level
   accuracy is meaningless here: ~88% of tokens are outside any entity, so a
   model predicting `O` everywhere scores 0.88 accuracy while finding nothing.
-- **The test split is loaded by exactly one script.** `scripts/evaluate_test.py`
-  is the only file in the repository that reads `esp.testb`. Baseline selection,
-  hyperparameters, early stopping and error analysis all run on dev.
+- **Nothing is selected on the test split.** Baseline selection,
+  hyperparameters and early stopping all run on dev, and reading `esp.testb`
+  requires passing `include_test=True` so it cannot happen by accident. Two
+  scripts pass it: `scripts/evaluate_test.py`, which produces the reported
+  scores, and `scripts/error_analysis.py`, which describes the errors of the
+  already-chosen model and changed none of them. An earlier version of this
+  bullet said `evaluate_test.py` was the only file that read the test split,
+  which was not true.
 - **Best epoch by dev F1 is kept**, not the last, so a model that peaks at epoch
   3 and overfits at epoch 4 is not reported at its worst.
 - **Reported scores are recomputed through `predict_sentences`**, the same
@@ -297,8 +390,8 @@ Downloads the three raw corpus files and verifies their SHA-256 checksums.
 python -m pytest
 ```
 
-60 tests: corpus integrity, encoding, split overlap, entity decoding, sub-word
-label alignment and the service contract. Run this before trusting any number
+73 tests: corpus integrity, encoding, split overlap, entity decoding, sub-word
+label alignment, the significance protocol and the service contract. Run this before trusting any number
 below. The API tests skip themselves when no checkpoint has been trained yet, so
 a fresh clone runs green.
 
@@ -343,37 +436,55 @@ Serves the Gradio demo at `http://127.0.0.1:7860`.
 A demo proves the model runs. These are the numbers an operator needs before
 putting it behind anything.
 
-Measured on a single RTX 5060 Ti, 40 iterations per batch size after five
-discarded warm-up passes, on real development-set documents averaging 24.2
-tokens. Produced by `serve/benchmark.py` and stored in
-[`reports/metrics_serving.json`](reports/metrics_serving.json).
+Measured on a single RTX 5060 Ti. **Every row processes the same 512
+development-set documents** (mean 24.2 tokens), in chunks of the stated batch
+size, three passes each after five discarded warm-ups. p50/p95/p99 are per-batch
+latencies across every chunk of every pass; throughput is the whole 512-document
+workload divided by the median pass time. Produced by `serve/benchmark.py` and
+stored in [`reports/metrics_serving.json`](reports/metrics_serving.json).
 
 | Batch | p50 (ms) | p95 (ms) | p99 (ms) | Docs/s | USD per 1M docs |
 |---:|---:|---:|---:|---:|---:|
-| 1 | 13.2 | 14.0 | 15.5 | 76 | 1.94 |
-| 4 | 14.6 | 15.2 | 17.9 | 274 | 0.54 |
-| 8 | 22.8 | 23.4 | 23.7 | 351 | 0.42 |
-| 16 | 40.8 | 42.0 | 42.3 | 392 | 0.38 |
-| 32 | 68.9 | 69.8 | 70.0 | 464 | 0.32 |
-| **64** | 126.6 | 128.8 | 130.0 | **506** | **0.29** |
+| 1 | 6.4 | 7.1 | 7.6 | 160 | 0.92 |
+| 4 | 8.9 | 12.1 | 12.5 | 431 | 0.34 |
+| 8 | 13.7 | 20.5 | 22.2 | 551 | 0.27 |
+| 16 | 24.5 | 36.7 | 37.2 | 638 | 0.23 |
+| **32** | 52.8 | 64.3 | 64.7 | **638** | **0.23** |
+| 64 | 112.7 | 127.7 | 128.4 | 605 | 0.24 |
 
-**Batching 64 documents delivers 6.7× the throughput of one-at-a-time and cuts
-cost per million documents by 85%.** Cost assumes sustained utilisation at USD
-0.53/hour for an entry-level inference GPU and excludes network, storage and
-orchestration.
+**Batching 32 documents delivers 4.0× the throughput of one-at-a-time and cuts
+cost per million documents by 75%.**
 
-The shape of that table is the point. Going from batch 1 to batch 4 costs 1.4 ms
-of latency and quadruples throughput, because a batch of four barely fills the
-GPU. Going from 32 to 64 doubles latency for 9% more throughput. Past that the
-device is saturated and batching only buys queueing delay. An interactive
-endpoint should sit at the left of this table and a bulk pipeline at the right,
-and neither number alone describes the system.
+> **Correction.** This table used to read 6.7× and put the optimum at batch 64,
+> because each row was timed on `pool[:batch_size]` — batch 1 on one particular
+> sentence, batch 64 on a different set of 64. The cross-row comparison was
+> therefore a mixture of batch size and which documents happened to be
+> measured, and the batch-1 row was the latency of a single unlucky sentence
+> rather than a median. With the workload held fixed the speed-up is 4.0×, and
+> **throughput peaks at 32 and falls at 64** — so the old advice to put a bulk
+> pipeline at the right-hand end of the table pointed past the optimum.
+
+The shape is the point. Going from batch 1 to batch 4 costs 2.6 ms of latency
+and nearly triples throughput, because a batch of four barely fills the GPU.
+From 16 to 32 throughput does not move at all while latency doubles, and at 64
+it goes backwards. The device saturates around 16, and past that batching buys
+queueing delay. An interactive endpoint belongs at the left of this table, a
+bulk pipeline in the middle, and neither number alone describes the system.
+
+**About the cost column.** The rate is USD 0.53/hour for an NVIDIA T4 and the
+throughput is this machine's RTX 5060 Ti, which is considerably faster. So the
+column is a rate times a measured throughput, not a quote: a real T4 would bill
+more per million documents. The mismatch is recorded in
+`reports/metrics_serving.json` as `priced_hardware` and `measured_hardware`
+rather than left for a reader to infer. An earlier version of this section said
+only "an entry-level inference GPU", which gave no way to notice.
 
 ### Running it
 
 ```bash
 pip install -e ".[serve]"
-python serve/benchmark.py                    # reproduce the table above
+python serve/benchmark.py                    # reproduce the GPU table above
+python serve/benchmark.py --device cpu       # the CPU table, for the container
 uvicorn serve.api:app --port 8000            # serve locally
 docker compose -f serve/docker-compose.yml up --build
 ```
@@ -390,8 +501,31 @@ curl -s localhost:8000/extract -H 'content-type: application/json' \
 ```
 
 The container is multi-stage and runs as a non-root user on CPU-only torch,
-which keeps the image small enough for a free tier while still clearing 100
-documents per second at batch 64.
+which keeps the image small enough for a free tier.
+
+> **Correction.** This sentence used to end "while still clearing 100 documents
+> per second at batch 64", and **no CPU benchmark existed in this repository**:
+> `reports/metrics_serving.json` was a single CUDA run. `serve/benchmark.py`
+> always had a `--device cpu` flag that had never been used to produce a
+> committed report. It has now, into
+> [`reports/metrics_serving_cpu.json`](reports/metrics_serving_cpu.json):
+>
+> | Batch | p50 (ms) | Docs/s | USD per 1M docs |
+> |---:|---:|---:|---:|
+> | 1 | 28.7 | 35.0 | 0.79 |
+> | **4** | 82.0 | **48.6** | **0.57** |
+> | 8 | 162.9 | 47.8 | 0.58 |
+> | 16 | 368.7 | 43.2 | 0.64 |
+> | 32 | 888.0 | 38.9 | 0.71 |
+> | 64 | 2005.8 | 34.5 | 0.80 |
+>
+> **48.6 documents per second at batch 4, not 100 at batch 64** — and batch 64
+> is the worst setting on the table, no better than one-at-a-time. Batching is
+> worth 1.4× on this CPU against 4.0× on the GPU, which is the more useful
+> finding: the CPU is compute-bound at batch 1 already, so grouping work buys
+> latency and almost no throughput. The free-tier deployment is viable at a few
+> dozen documents per second, and the earlier number was an unmeasured guess
+> that happened to be threefold optimistic.
 
 Inference in the service runs through `predict_sentences`, the same function
 that produced every metric in this README, and a test asserts that batched and
@@ -458,13 +592,13 @@ spanish-ner-benchmark/
 │   ├── download_data.py        fetch and verify the corpus
 │   ├── train_baselines.py      gazetteer + CRF, dev evaluation
 │   ├── train_transformer.py    fine-tune any HF checkpoint
-│   ├── evaluate_test.py        the only script that reads the test split
+│   ├── evaluate_test.py        the reported scores; reads the test split
 │   └── error_analysis.py       figures and error categorisation
 ├── serve/
 │   ├── api.py                  FastAPI service with probes and metrics
 │   ├── benchmark.py            latency, throughput and cost measurement
 │   └── Dockerfile              multi-stage, non-root, CPU-only
-├── tests/                      60 tests
+├── tests/                      73 tests
 ├── reports/                    metrics as JSON, figures as PNG
 └── app/                        Gradio demo for Hugging Face Spaces
 ```
@@ -504,9 +638,17 @@ standard values from the BERT fine-tuning literature, applied identically to all
 three transformers. Fair for comparison, almost certainly not optimal for any of
 them.
 
-**Truncation.** `max_length=256` sub-tokens. No training sentence is affected,
-so this costs nothing on this corpus, but the demo silently tags words beyond
-that limit as `O`. Long documents should be chunked before being passed in.
+**Truncation.** `max_length=256` sub-tokens, and it does bite. An earlier
+version of this bullet said "no training sentence is affected, so this costs
+nothing on this corpus" — contradicted by this repository's own committed
+reports, which record **6 truncated training sentences and 1,531 lost words**
+for BETO (6 / 1,537 for mBERT, 5 / 1,449 for XLM-R). Six sentences out of 8,323
+sounds negligible until you notice they are the long ones: 1,531 of 264,715
+training words, **0.58%**. Small, but not the nothing that was claimed. The report is written by
+`scripts/train_transformer.py` and covers the training split only — the dev and
+test splits are not checked, so nothing is known about truncation there. The
+demo also silently tags words beyond the limit as `O`; long documents should be
+chunked before being passed in.
 
 **The dev/test rank inversion deserves more work.** Finding 1 is a single
 observation. Whether XLM-R is genuinely worse here or was unlucky needs repeated

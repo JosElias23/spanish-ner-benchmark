@@ -140,9 +140,20 @@ def load_split(
 def load_all(config: dict, include_test: bool = False) -> dict[str, list[Sentence]]:
     """Load train and dev; the test split is opt-in.
 
-    Making `test` opt-in is a deliberate guard rail. The official test split
-    (`esp.testb`) is read exactly once, by the final evaluation script. Any
-    model selection, threshold tuning or error analysis happens on dev.
+    Making `test` opt-in is a deliberate guard rail: reading the official test
+    split (`esp.testb`) requires asking for it by name, so it cannot happen by
+    accident.
+
+    Two scripts ask. `scripts/evaluate_test.py` produces the reported scores,
+    and `scripts/error_analysis.py` describes the errors of the already-chosen
+    model. An earlier version of this docstring said the test split was "read
+    exactly once, by the final evaluation script", and that the error analysis
+    ran on dev. Both were wrong, and grep says so in one line.
+
+    The property that actually matters is intact and is narrower than what was
+    claimed: **nothing is selected on the test split.** Baselines,
+    hyper-parameters and early stopping all use dev. The error analysis runs
+    after the final evaluation and changed no model.
     """
     splits = {name: load_split(name, config) for name in ("train", "dev")}
     if include_test:

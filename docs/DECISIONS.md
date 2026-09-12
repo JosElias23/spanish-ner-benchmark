@@ -72,7 +72,7 @@ the model has already seen.
 
 **Decision.** Removing them would break comparability with three decades of
 published CoNLL results, so every table reports both the official test set and
-the 1,208-sentence deduplicated subset. The counts are pinned in
+the 1,166-sentence deduplicated subset. The counts are pinned in
 `tests/test_data.py::TestSplitOverlap`, so a change in the raw data fails the
 suite instead of silently moving the metrics.
 
@@ -173,7 +173,7 @@ described.
 XLM-R is also the most expensive by a wide margin: 277 M parameters and 452 s
 against BETO's 109 M and 105 s, a 4.3x training cost for the lowest test score.
 
-### 4.3 Deduplication cost scales with memorisation
+### 4.3 Correction: deduplication cost scales with headroom, not memorisation
 
 | Model | Full | Deduplicated | Drop |
 |---|---:|---:|---:|
@@ -183,10 +183,48 @@ against BETO's 109 M and 105 s, a 4.3x training cost for the lowest test score.
 | BETO | 0.8705 | 0.8642 | −0.63 pts |
 | mBERT | 0.8720 | 0.8659 | −0.61 pts |
 
-**The more a model relies on memorisation, the more it loses when memorised
-sentences are removed.** The gazetteer, which is nothing but memorisation, gives
-up nearly four times what the transformers do. That is a free, quantitative
-measurement of generalisation, extracted from a defect in the benchmark.
+An earlier version of this section read that as memorisation: "the more a model
+relies on memorisation, the more it loses when memorised sentences are removed",
+with the gazetteer giving up nearly four times what the transformers do, called
+a free quantitative measurement of generalisation.
+
+**It is an arithmetic artefact, and two checks on the numbers above show it.**
+
+The drop ordering is the F1 ordering reversed, exactly: Spearman between overall
+test F1 and drop is **-1.00** across all five models. A perfect rank correlation
+over five models is what a constraint looks like, not what a behavioural
+tendency looks like.
+
+The constraint is headroom. Deduplication removes 336 of 3,559 test entities,
+9.4%. Treating micro-F1 as approximately a weighted average over the removed and
+retained portions, a model scoring *perfectly* on the removed part could lose at
+most `0.094 * (1 - F1) / 0.906` when it goes:
+
+| Model | Test F1 | Ceiling on the drop | Observed |
+|---|---:|---:|---:|
+| Gazetteer | 0.3595 | 6.64 pts | 2.31 |
+| CRF | 0.7924 | 2.15 pts | 1.55 |
+| XLM-R | 0.8622 | 1.43 pts | 0.92 |
+| BETO | 0.8705 | 1.34 pts | 0.63 |
+| mBERT | 0.8720 | 1.33 pts | 0.61 |
+
+The ceiling ratio between the gazetteer and mBERT is **5.0x** before any model
+behaves at all. The observed ratio is **3.8x**, below it. Every drop in that
+table is consistent with pure headroom, and the "nearly four times" was a
+restatement of the F1 column.
+
+What survives: every model loses something, so every model was collecting some
+credit from sentences it had already seen, and the deduplicated column is the
+better estimate of generalisation. What does not: any claim about *which* model
+leaned on memorisation more. Testing that needs each model's score on the
+duplicated sentences set against like-for-like sentences absent from training --
+same register, same boilerplate, different provenance -- and that experiment is
+not in this repository.
+
+The general shape is worth naming, because it recurs: a quantity whose range is
+mechanically bounded by another quantity, read as though it were free to vary.
+Checking costs one line of arithmetic and is worth doing before any ordering
+across models is called a finding.
 
 ### 4.4 Detection is solved; classification is not
 

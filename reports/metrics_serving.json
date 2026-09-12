@@ -1,68 +1,81 @@
 {
-  "batching_speedup": 6.7,
+  "batching_speedup": 4.0,
   "by_batch_size": [
     {
       "batch_size": 1,
-      "documents_per_second": 76.0,
-      "mean_ms": 12.18,
-      "ms_per_document": 13.16,
-      "p50_ms": 13.16,
-      "p95_ms": 14.03,
-      "p99_ms": 15.53,
-      "usd_per_million_documents": 1.94
+      "batches_timed": 1536,
+      "documents_per_second": 160.1,
+      "documents_timed": 512,
+      "mean_ms": 6.28,
+      "ms_per_document": 6.349,
+      "p50_ms": 6.35,
+      "p95_ms": 7.07,
+      "p99_ms": 7.56,
+      "usd_per_million_documents": 0.92
     },
     {
       "batch_size": 4,
-      "documents_per_second": 273.7,
-      "mean_ms": 14.2,
-      "ms_per_document": 3.653,
-      "p50_ms": 14.61,
-      "p95_ms": 15.15,
-      "p99_ms": 17.93,
-      "usd_per_million_documents": 0.54
+      "batches_timed": 384,
+      "documents_per_second": 430.6,
+      "documents_timed": 512,
+      "mean_ms": 9.29,
+      "ms_per_document": 2.231,
+      "p50_ms": 8.92,
+      "p95_ms": 12.06,
+      "p99_ms": 12.5,
+      "usd_per_million_documents": 0.34
     },
     {
       "batch_size": 8,
-      "documents_per_second": 351.1,
-      "mean_ms": 22.39,
-      "ms_per_document": 2.848,
-      "p50_ms": 22.78,
-      "p95_ms": 23.45,
-      "p99_ms": 23.66,
-      "usd_per_million_documents": 0.42
+      "batches_timed": 192,
+      "documents_per_second": 551.2,
+      "documents_timed": 512,
+      "mean_ms": 14.51,
+      "ms_per_document": 1.706,
+      "p50_ms": 13.65,
+      "p95_ms": 20.53,
+      "p99_ms": 22.16,
+      "usd_per_million_documents": 0.27
     },
     {
       "batch_size": 16,
-      "documents_per_second": 392.0,
-      "mean_ms": 40.19,
-      "ms_per_document": 2.551,
-      "p50_ms": 40.81,
-      "p95_ms": 42.05,
-      "p99_ms": 42.32,
-      "usd_per_million_documents": 0.38
+      "batches_timed": 96,
+      "documents_per_second": 637.9,
+      "documents_timed": 512,
+      "mean_ms": 25.11,
+      "ms_per_document": 1.532,
+      "p50_ms": 24.51,
+      "p95_ms": 36.66,
+      "p99_ms": 37.15,
+      "usd_per_million_documents": 0.23
     },
     {
       "batch_size": 32,
-      "documents_per_second": 464.5,
-      "mean_ms": 68.27,
-      "ms_per_document": 2.153,
-      "p50_ms": 68.89,
-      "p95_ms": 69.85,
-      "p99_ms": 70.02,
-      "usd_per_million_documents": 0.32
+      "batches_timed": 48,
+      "documents_per_second": 638.3,
+      "documents_timed": 512,
+      "mean_ms": 50.08,
+      "ms_per_document": 1.651,
+      "p50_ms": 52.84,
+      "p95_ms": 64.32,
+      "p99_ms": 64.71,
+      "usd_per_million_documents": 0.23
     },
     {
       "batch_size": 64,
-      "documents_per_second": 505.7,
-      "mean_ms": 125.95,
-      "ms_per_document": 1.978,
-      "p50_ms": 126.56,
-      "p95_ms": 128.85,
-      "p99_ms": 129.96,
-      "usd_per_million_documents": 0.29
+      "batches_timed": 24,
+      "documents_per_second": 605.3,
+      "documents_timed": 512,
+      "mean_ms": 106.13,
+      "ms_per_document": 1.761,
+      "p50_ms": 112.72,
+      "p95_ms": 127.67,
+      "p99_ms": 128.35,
+      "usd_per_million_documents": 0.24
     }
   ],
-  "cost_note": "Cost assumes sustained utilisation at the stated on-demand hourly rate and excludes network, storage and orchestration overhead.",
+  "cost_note": "Cost assumes sustained utilisation at the stated on-demand hourly rate and excludes network, storage and orchestration overhead. The rate and the throughput come from DIFFERENT hardware: the price is an NVIDIA T4's and the throughput is this machine's, so on a real T4 the cost per million documents would be higher. The column is a rate times a measured throughput, not a quote.",
+  "documents_per_row": 512,
   "environment": {
     "device": "cuda",
     "gpu": "NVIDIA GeForce RTX 5060 Ti",
@@ -74,9 +87,12 @@
     "cpu_2vcpu": 0.1,
     "gpu_t4": 0.53
   },
-  "iterations_per_batch_size": 40,
   "max_length": 256,
   "mean_tokens_per_document": 24.2,
-  "model": "models/bert-base-spanish-wwm-cased/best",
-  "warmup_iterations": 5
+  "measured_hardware": "NVIDIA GeForce RTX 5060 Ti",
+  "model": "models\\bert-base-spanish-wwm-cased\\best",
+  "passes_per_batch_size": 3,
+  "priced_hardware": "gpu_t4",
+  "warmup_iterations": 5,
+  "workload_note": "Every batch size processes the same 512 documents, in chunks. p50/p95/p99 are per-batch latencies over every chunk of every pass; documents_per_second is the whole pool divided by the median pass time."
 }

@@ -1,0 +1,98 @@
+{
+  "batching_speedup": 1.4,
+  "by_batch_size": [
+    {
+      "batch_size": 1,
+      "batches_timed": 1024,
+      "documents_per_second": 35.0,
+      "documents_timed": 512,
+      "mean_ms": 28.55,
+      "ms_per_document": 28.669,
+      "p50_ms": 28.67,
+      "p95_ms": 42.84,
+      "p99_ms": 48.14,
+      "usd_per_million_documents": 0.79
+    },
+    {
+      "batch_size": 4,
+      "batches_timed": 256,
+      "documents_per_second": 48.6,
+      "documents_timed": 512,
+      "mean_ms": 82.33,
+      "ms_per_document": 20.504,
+      "p50_ms": 82.01,
+      "p95_ms": 123.53,
+      "p99_ms": 140.67,
+      "usd_per_million_documents": 0.57
+    },
+    {
+      "batch_size": 8,
+      "batches_timed": 128,
+      "documents_per_second": 47.8,
+      "documents_timed": 512,
+      "mean_ms": 167.33,
+      "ms_per_document": 20.366,
+      "p50_ms": 162.93,
+      "p95_ms": 254.33,
+      "p99_ms": 271.22,
+      "usd_per_million_documents": 0.58
+    },
+    {
+      "batch_size": 16,
+      "batches_timed": 64,
+      "documents_per_second": 43.2,
+      "documents_timed": 512,
+      "mean_ms": 370.46,
+      "ms_per_document": 23.042,
+      "p50_ms": 368.68,
+      "p95_ms": 526.76,
+      "p99_ms": 545.52,
+      "usd_per_million_documents": 0.64
+    },
+    {
+      "batch_size": 32,
+      "batches_timed": 32,
+      "documents_per_second": 38.9,
+      "documents_timed": 512,
+      "mean_ms": 822.58,
+      "ms_per_document": 27.749,
+      "p50_ms": 887.97,
+      "p95_ms": 1091.34,
+      "p99_ms": 1102.44,
+      "usd_per_million_documents": 0.71
+    },
+    {
+      "batch_size": 64,
+      "batches_timed": 16,
+      "documents_per_second": 34.5,
+      "documents_timed": 512,
+      "mean_ms": 1853.24,
+      "ms_per_document": 31.34,
+      "p50_ms": 2005.75,
+      "p95_ms": 2186.03,
+      "p99_ms": 2202.43,
+      "usd_per_million_documents": 0.8
+    }
+  ],
+  "cost_note": "Cost assumes sustained utilisation at the stated on-demand hourly rate and excludes network, storage and orchestration overhead. The rate and the throughput come from DIFFERENT hardware: the price is an NVIDIA T4's and the throughput is this machine's, so on a real T4 the cost per million documents would be higher. The column is a rate times a measured throughput, not a quote.",
+  "documents_per_row": 512,
+  "environment": {
+    "device": "cpu",
+    "gpu": null,
+    "platform": "Windows 11",
+    "python": "3.12.10",
+    "torch": "2.11.0+cu128"
+  },
+  "hourly_rate_usd": {
+    "cpu_2vcpu": 0.1,
+    "gpu_t4": 0.53
+  },
+  "max_length": 256,
+  "mean_tokens_per_document": 24.2,
+  "measured_hardware": "this CPU",
+  "model": "models\\bert-base-spanish-wwm-cased\\best",
+  "passes_per_batch_size": 2,
+  "priced_hardware": "cpu_2vcpu",
+  "warmup_iterations": 5,
+  "workload_note": "Every batch size processes the same 512 documents, in chunks. p50/p95/p99 are per-batch latencies over every chunk of every pass; documents_per_second is the whole pool divided by the median pass time."
+}
